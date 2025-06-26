@@ -12,16 +12,11 @@ CACHE_DIR="$2"
 ENV_DIR="$3"
 STAGE="$(mktemp -d)"
 
-if [ ! -f "${ENV_DIR}/APP_BASE" ]; then
-    echo "APP_BASE was not set. Aborting" | indent
-    exit 1
-fi
-APP_BASE="$(cat "${ENV_DIR}/APP_BASE")"
-
 (
-    mv "${BUILD_DIR}/${APP_BASE}" "${STAGE}" &&
+    mv "${BUILD_DIR}/web" "${BUILD_DIR}/api/" &&
+    mv "${BUILD_DIR}/api" "${STAGE}" &&
     rm -rf "${BUILD_DIR}"/* &&
-    mv "${STAGE}/$(basename "$APP_BASE")"/* "${BUILD_DIR}"
+    mv "${STAGE}/api"/* "${BUILD_DIR}"
 )
 
 if [ $? -ne 0 ]; then
