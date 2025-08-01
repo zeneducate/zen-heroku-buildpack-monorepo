@@ -13,6 +13,7 @@ ENV_DIR="$3"
 STAGE="$(mktemp -d)"
 
 (
+    mv "${BUILD_DIR}/.git" "${BUILD_DIR}/api/.git" &&
     mv "${BUILD_DIR}/web" "${BUILD_DIR}/api/" &&
     mv "${BUILD_DIR}/api" "${STAGE}" &&
     rm -rf "${BUILD_DIR}"/* &&
@@ -25,4 +26,3 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Copied ${APP_BASE} to root of app successfully" | indent
-
