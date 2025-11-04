@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
+# bin/detect <build-dir>
 
-echo "Monorepo"
-exit 0
+set -euo pipefail
+
+BUILD_DIR="$1"
+
+if [ -d "$BUILD_DIR/web" ] && [ -d "$BUILD_DIR/api" ]; then
+  echo "Detected Zen Monorepo!"
+  exit 0
+else
+  echo "Not a Zen Monorepo!"
+  exit 1
+fi

@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
+# bin/detect <build-dir> <cache-dir> <env-dir>
+
+set -euo pipefail
 
 # Ensure wildcards in globs match dotfiles too.
 shopt -s dotglob
-
-indent() {
-    sed -u 's/^/      /'
-}
 
 BUILD_DIR="$1"
 CACHE_DIR="$2"
 ENV_DIR="$3"
 STAGE="$(mktemp -d)"
 
-(
-    mv "${BUILD_DIR}/web" "${BUILD_DIR}/api/" &&
-    mv "${BUILD_DIR}/api" "${STAGE}" &&
-    rm -rf "${BUILD_DIR}"/* &&
-    mv "${STAGE}/api"/* "${BUILD_DIR}"
-)
+echo "Moving api/ into /web"
+mv "${BUILD_DIR}/api" "${BUILD_DIR}/web/"
 
-if [ $? -ne 0 ]; then
-    echo "FAILED to copy directory into place" | indent
-    exit 1
-fi
+echo "Moving web/ contents to stage directory"
+mv "${BUILD_DIR}/web" "${STAGE}"
 
-echo "Copied ${APP_BASE} to root of app successfully" | indent
+echo "Removing all contents from root of app directory"
+rm -rf "${BUILD_DIR}"/*
 
+echo "Copying contents of web/ to root of app directory"
+mv "${STAGE}/web"/* "${BUILD_DIR}"
+
+echo "Copied web to root of app successfully"
+
+ls -1 "${BUILD_DIR}"
