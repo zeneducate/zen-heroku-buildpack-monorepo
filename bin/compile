@@ -1,28 +1,36 @@
 #!/usr/bin/env bash
+# bin/detect <build-dir> <cache-dir> <env-dir>
+
+set -euo pipefail
 
 # Ensure wildcards in globs match dotfiles too.
 shopt -s dotglob
 
-indent() {
-    sed -u 's/^/      /'
-}
+header() { echo "-----> $*"; }
+log()    { echo "       $*"; }
 
 BUILD_DIR="$1"
 CACHE_DIR="$2"
 ENV_DIR="$3"
 STAGE="$(mktemp -d)"
 
-(
-    mv "${BUILD_DIR}/web" "${BUILD_DIR}/api/" &&
-    mv "${BUILD_DIR}/api" "${STAGE}" &&
-    rm -rf "${BUILD_DIR}"/* &&
-    mv "${STAGE}/api"/* "${BUILD_DIR}"
-)
+header "Making api/ root and web bin/ public/ dist/ into web/"
 
-if [ $? -ne 0 ]; then
-    echo "FAILED to copy directory into place" | indent
-    exit 1
-fi
+log "Moving api/ staging area"
+mv "$BUILD_DIR/api"/* "$STAGE"
 
-echo "Copied ${APP_BASE} to root of app successfully" | indent
+log "Creating web/ staging area"
+mkdir -p "$BUILD_DIR/web"
 
+log "Moving dist/ bin/ public/ to web/ staging area"
+mv "$BUILD_DIR/dist" "$BUILD_DIR/web/"
+mv "$BUILD_DIR/bin" "$BUILD_DIR/web/"
+mv "$BUILD_DIR/public" "$BUILD_DIR/web/"
+
+log "Removing all other files from build directory"
+rm -rf "$BUILD_DIR"/*
+
+log "Moving staging area back to build directory"
+mv "$STAGE"/* "$BUILD_DIR/"
+
+log "Successfully restructured build directory"

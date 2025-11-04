@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
+# bin/detect <build-dir>
 
-echo "Monorepo"
-exit 0
+set -euo pipefail
+
+BUILD_DIR="$1"
+
+if [ -f "$BUILD_DIR/package-lock.json" ] && [ -d "$BUILD_DIR/api" ]; then
+  echo "MAKE API ROOT AND MOVE WEB BUILD OUTPUT TO WEB"
+  exit 0
+else
+  echo "MAKE API ROOT NOT DETECTED"
+  exit 1
+fi
