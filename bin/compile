@@ -1,3 +1,35 @@
 #!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir> <env-dir>
 
-ls -a1
+set -euo pipefail
+
+BUILD_DIR="$1"
+CACHE_DIR="$2"
+ENV_DIR="$3"
+
+header() {
+  echo "-----> $*"
+}
+
+tree() {
+  ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/'
+}
+
+header "BUILD_DIR: $BUILD_DIR"
+header "CACHE_DIR: $CACHE_DIR"
+header "ENV_DIR: $ENV_DIR"
+
+header "Tree of root"
+tree
+
+header "Tree of build dir"
+cd "$BUILD_DIR"
+tree
+
+header "Tree of cache dir"
+cd "$CACHE_DIR"
+tree
+
+header "Tree of env dir"
+cd "$ENV_DIR"
+tree
