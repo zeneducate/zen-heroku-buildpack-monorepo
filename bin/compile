@@ -12,7 +12,10 @@ header() {
 }
 
 tree() {
-  ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/'
+  ls -R |
+    grep ":$" |
+    grep -v 'node_modules' |
+    sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/'
 }
 
 header "BUILD_DIR: $BUILD_DIR"
