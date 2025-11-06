@@ -7,15 +7,31 @@ BUILD_DIR="$1"
 CACHE_DIR="$2"
 ENV_DIR="$3"
 
-header() {
-  echo "-----> $*"
+indent() { sed -u 's/^/       /'; }
+header() { echo "-----> $*"; }
+log()    { echo "       $*"; }
+
+tree_find() {
+  find $1 |
+    grep -v 'node_modules' |
+    sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
 }
 
-tree() {
-  ls -R |
-    grep ":$" |
-    grep -v 'node_modules' |
-    sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/'
+inspect_dir() {
+  local dir_to_inspect="$1"
+
+  header "Inspecting directory: $dir_to_inspect"
+  if [ -d "$dir_to_inspect" ]; then
+    log "$dir_to_inspect exists"
+
+    if command -v tree &> /dev/null; then
+      tree "$dir_to_inspect" -I 'node_modules' | indent
+    else
+      tree_find "$dir_to_inspect" | indent
+    fi
+  else
+    log "$dir_to_inspect does not exist"
+  fi
 }
 
 header "BUILD_DIR: $BUILD_DIR"
@@ -23,16 +39,13 @@ header "CACHE_DIR: $CACHE_DIR"
 header "ENV_DIR: $ENV_DIR"
 
 header "Tree of root"
-tree
+inspect_dir "$PWD"
 
 header "Tree of build dir"
-cd "$BUILD_DIR"
-tree
+inspect_dir "$BUILD_DIR"
 
 header "Tree of cache dir"
-cd "$CACHE_DIR"
-tree
+inspect_dir "$CACHE_DIR"
 
 header "Tree of env dir"
-cd "$ENV_DIR"
-tree
+inspect_dir "$ENV_DIR"
