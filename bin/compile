@@ -11,7 +11,8 @@ indent() { sed -u 's/^/       /'; }
 header() { echo "-----> $*"; }
 log()    { echo "       $*"; }
 
-tree_find() {
+# tree does not exist on Heroku by default, so we implement a simple version
+tree() {
   find $1 |
     grep -v 'node_modules' |
     sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
@@ -24,11 +25,7 @@ inspect_dir() {
   if [ -d "$dir_to_inspect" ]; then
     log "$dir_to_inspect exists"
 
-    if command -v tree &> /dev/null; then
-      tree "$dir_to_inspect" -I 'node_modules' | indent
-    else
-      tree_find "$dir_to_inspect" | indent
-    fi
+    tree "$dir_to_inspect" | indent
   else
     log "$dir_to_inspect does not exist"
   fi
