@@ -65,11 +65,11 @@ mkdir -p "${AWS_CLI_DIR}"
 mv "${AWS_CLI_UNZIP}/aws/dist"/* "${AWS_CLI_DIR}/"
 rm -rf "${AWS_CLI_UNZIP}"
 
-# Put `aws` on PATH at runtime. Heroku-style launchers source .profile.d/*.sh
-# on dyno/container startup, where the slug lives at /app.
+# Put `aws` on PATH at runtime. Launchers source .profile.d/*.sh on container
+# startup. Northflank unpacks the app to /workspace.
 mkdir -p "${BUILD_DIR}/.profile.d"
 cat > "${BUILD_DIR}/.profile.d/aws-cli.sh" <<'EOF'
-export PATH="/app/.aws-cli:${PATH}"
+export PATH="/workspace/.aws-cli:${PATH}"
 EOF
 
 echo "Installed $("${AWS_CLI_DIR}/aws" --version 2>&1)" | indent
