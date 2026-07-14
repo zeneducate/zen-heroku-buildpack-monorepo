@@ -26,3 +26,51 @@ fi
 
 echo "Copied ${APP_BASE} to root of app successfully" | indent
 
+# --- Install the AWS CLI v2 -------------------------------------------------
+# Must run AFTER the reshuffle above, which does `rm -rf "${BUILD_DIR}"/*`.
+#
+# We vendor the self-contained `aws/dist` bundle rather than running the
+# official `./aws/install`. That installer writes *absolute* symlinks pointing
+# at the build directory, which break once the slug is unpacked to /app at
+# runtime. `aws/dist/aws` runs standalone, so vendoring dist avoids the issue.
+
+AWS_CLI_URL="https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+AWS_CLI_DIR="${BUILD_DIR}/.aws-cli"       # -> /app/.aws-cli at runtime
+AWS_CLI_ZIP="${CACHE_DIR}/awscli-exe-linux-x86_64.zip"
+
+echo "-----> Installing AWS CLI v2"
+
+mkdir -p "${CACHE_DIR}"
+
+if [ ! -f "${AWS_CLI_ZIP}" ]; then
+    echo "Downloading ${AWS_CLI_URL}" | indent
+    if ! curl -fsSL -o "${AWS_CLI_ZIP}" "${AWS_CLI_URL}"; then
+        echo "FAILED to download the AWS CLI" | indent
+        rm -f "${AWS_CLI_ZIP}"
+        exit 1
+    fi
+else
+    echo "Using cached download" | indent
+fi
+
+AWS_CLI_UNZIP="$(mktemp -d)"
+if ! unzip -q "${AWS_CLI_ZIP}" -d "${AWS_CLI_UNZIP}"; then
+    echo "FAILED to unzip the AWS CLI (corrupt cache?)" | indent
+    rm -f "${AWS_CLI_ZIP}"
+    exit 1
+fi
+
+rm -rf "${AWS_CLI_DIR}"
+mkdir -p "${AWS_CLI_DIR}"
+mv "${AWS_CLI_UNZIP}/aws/dist"/* "${AWS_CLI_DIR}/"
+rm -rf "${AWS_CLI_UNZIP}"
+
+# Put `aws` on PATH at runtime. Heroku-style launchers source .profile.d/*.sh
+# on dyno/container startup, where the slug lives at /app.
+mkdir -p "${BUILD_DIR}/.profile.d"
+cat > "${BUILD_DIR}/.profile.d/aws-cli.sh" <<'EOF'
+export PATH="/app/.aws-cli:${PATH}"
+EOF
+
+echo "Installed $("${AWS_CLI_DIR}/aws" --version 2>&1)" | indent
+
